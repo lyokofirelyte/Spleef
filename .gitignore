@@ -1,0 +1,9 @@
+.settings/
+target/classes
+target/generated-sources
+target/maven-archiver
+target/test-classes
+*.classpath
+*.project
+/target
+/bin

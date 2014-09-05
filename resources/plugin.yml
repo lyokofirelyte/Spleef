@@ -1,0 +1,9 @@
+name: Spleef
+main: com.github.lyokofirelyte.Spleef.Spleef
+author: lyokofirelyte
+prefix: Spleef
+version: 1
+depend: [WorldEdit]
+
+commands:
+  spleef:
