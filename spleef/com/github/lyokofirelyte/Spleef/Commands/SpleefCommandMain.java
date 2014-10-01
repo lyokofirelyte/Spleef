@@ -1,16 +1,27 @@
 package com.github.lyokofirelyte.Spleef.Commands;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+import net.minecraft.util.gnu.trove.map.hash.THashMap;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
 import com.github.lyokofirelyte.Spleef.Spleef;
 import static com.github.lyokofirelyte.Spleef.SpleefModule.*;
+
+import com.github.lyokofirelyte.Spleef.JSON.JSONChatClickEventType;
+import com.github.lyokofirelyte.Spleef.JSON.JSONChatExtra;
+import com.github.lyokofirelyte.Spleef.JSON.JSONChatMessage;
 import com.github.lyokofirelyte.Spleef.Storage.Data.SpleefData.SpleefDataType;
 import com.github.lyokofirelyte.Spleef.Storage.Data.SpleefData.SpleefGame;
 import com.github.lyokofirelyte.Spleef.Storage.Data.SpleefData.SpleefGameData;
@@ -32,6 +43,7 @@ public class SpleefCommandMain {
 	public void onSpleef(Player p, String[] args){
 		
 		SpleefPlayer sender = getSpleefPlayer(p.getUniqueId());
+		SpleefGame senderGame = sender.inGame() ? getGameWithPlayer(sender) : null;
 		
 		if (args.length == 0){
 			onSpleef(p, new String[]{"help"});
@@ -43,12 +55,33 @@ public class SpleefCommandMain {
 			case "author": case "copyright":
 				
 				for (String s : new String[]{
-					"&oSpleef plugin custom coded for the World Spleef Federation.",
+					"&oSpleef plugin custom coded for this server",
 					"Author: &6Hugh_Jasses (lyokofirelyte@gmail.com)",
-					"Rights: &6Full usage rights for WSF only.",
-					"Source: &6Viewable on request (WSF only)"
 				}){
 					s(p, s);
+				}
+				
+			break;
+			
+			case "playto":
+				
+				if (sender.inGame()){
+					try {
+						int num = Integer.parseInt(args[1]);
+						senderGame.addVotedToPlayTo(sender, num);
+					} catch (Exception e){
+						e.printStackTrace();
+						sender.err("That's not even a number. /spleef playto <number>.");
+					}
+				}
+				
+			break;
+			
+			case "resign":
+				
+				if (sender.inGame()){
+					sender.opponent().setPoints(9999);
+					getActive().onFall(new PlayerMoveEvent(p, p.getLocation(), new Location(p.getLocation().getWorld(), p.getLocation().getX(), 0, p.getLocation().getY())));
 				}
 				
 			break;
@@ -68,10 +101,41 @@ public class SpleefCommandMain {
 					"/spleef enable/disable <ID>",
 					"/spleef score <player>",
 					"/spleef leaderboard",
+					"/spleef setlobby",
+					"/spleef reset",
+					"/spleef resign",
+					"/spleef playto <number>",
 					"/spleef copyright"
 				}){
 					s(p, s);
 				}
+				
+			break;
+			
+			case "leaderboard":
+				
+				Map<Integer, SpleefPlayer> scores = new THashMap<Integer, SpleefPlayer>();
+				List<Integer> scorez = new ArrayList<Integer>();
+				
+				for (SpleefPlayer player : main.getHooks().getAllUsers()){
+					if (!scores.containsValue(player)){
+						scores.put((int) player.gett(SpleefPlayerData.TOTAL_SCORE), player);
+						scorez.add((int) player.gett(SpleefPlayerData.TOTAL_SCORE));
+					}
+				}
+				
+				Collections.sort(scorez);
+				Collections.reverse(scorez);
+				
+				for (int i = 0; i < (scorez.size() > 10 ? 10 : scorez.size()); i++){
+					sender.s("&7" + scores.get(scorez.get(i)).playerName() + "&f: &6" + scorez.get(i));
+				}
+				
+			break;
+			
+			case "reset":
+				
+				sender.s("Soon....");
 				
 			break;
 			
@@ -128,7 +192,15 @@ public class SpleefCommandMain {
 							if ((them.getInvite() == null || them.getInvite().equals(them)) && !them.inGame()){
 								them.setInvite(sender);
 								sender.setInvite(sender);
-								them.s(p.getDisplayName() + " &bhas invited you to spleef. Type &6/spleef accept &bor &6/spleef deny&b.");
+								them.s(p.getDisplayName() + " &bhas invited you to spleef.");
+								JSONChatMessage msg = new JSONChatMessage("");
+								JSONChatExtra extra = new JSONChatExtra(AS("&a[ACCEPT] "));
+								extra.setClickEvent(JSONChatClickEventType.RUN_COMMAND, "/spleef accept");
+								msg.addExtra(extra);
+								extra = new JSONChatExtra(AS("&c[DECLINE]"));
+								extra.setClickEvent(JSONChatClickEventType.RUN_COMMAND, "/spleef deny");
+								msg.addExtra(extra);
+								msg.sendToPlayer(Bukkit.getPlayer(them.uuid()));
 								sender.s("Sent invite!");
 							} else {
 								sender.err("They already have an invite.");
@@ -149,8 +221,6 @@ public class SpleefCommandMain {
 					if (Bukkit.getPlayer(sender.getInvite().uuid()) != null){
 						for (SpleefGame game : getAllGames()){
 							if (game.involvedPlayers().size() <= 0 && game.isEnabled()){
-								Bukkit.getPlayer(sender.uuid()).getInventory().addItem(new ItemStack(Material.DIAMOND_SPADE));
-								Bukkit.getPlayer(sender.getInvite().uuid()).getInventory().addItem(new ItemStack(Material.DIAMOND_SPADE));
 								game.involvedPlayers().add(sender);
 								game.involvedPlayers().add(sender.getInvite());
 								sender.setCurrentGame(game);

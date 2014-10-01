@@ -26,6 +26,11 @@
 			<artifactId>bukkit</artifactId>
 			<version>${bukkit}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.bukkit</groupId>
+ 			<artifactId>craftbukkit</artifactId>
+ 			<version>${bukkit}</version>
+ 		</dependency>
 	</dependencies>
 	<repositories>
 		<repository>

@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.bukkit.Location;
+import org.bukkit.entity.Player;
 
 /**
  *We only want to put data to be saved & loaded on reboot into enums, as that's handled automatically.
@@ -89,9 +90,16 @@ public @interface SpleefData {
 	public interface SpleefGame extends SpleefInfo {
 		public List<SpleefPlayer> involvedPlayers();
 		public boolean isEnabled();
+		public boolean isReady();
+		public int getPlayTo();
+		public int getVotedToPlayTo();
 		public void setEnabled(boolean enable);
 		public void bc(String message);
 		public void teleportPlayers();
+		public void scoreboard(Player... playerz);
+		public void setPlayTo(int i);
+		public void barriers(Player p1, Player p2, boolean form);
+		public void addVotedToPlayTo(SpleefPlayer player, int vote);
 	}
 	
 	public interface SpleefPlayer extends SpleefInfo {

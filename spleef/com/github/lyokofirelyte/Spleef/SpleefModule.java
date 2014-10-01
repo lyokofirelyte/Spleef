@@ -75,6 +75,17 @@ public class SpleefModule {
 		return getManager().data.get(SpleefDataType.SYSTEM.s() + " system").toSystem();
 	}
 	
+	public static SpleefGame getGameWithPlayer(SpleefPlayer player){
+		
+		for (SpleefGame g : getAllGames()){
+			if (g.involvedPlayers().contains(player)){
+				return g;
+			}
+		}
+		
+		return null;
+	}
+	
 	public static List<SpleefGame> getAllGames(){
 		
 		List<SpleefGame> list = new ArrayList<SpleefGame>();
